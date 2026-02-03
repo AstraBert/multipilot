@@ -17,9 +17,9 @@ var configFile string
 var showHelp bool
 
 var rootCmd = &cobra.Command{
-	Use:   "mp",
-	Short: "mp is a simple orchestration layer to run multiple GitHub Copilot tasks.",
-	Long:  "mp (multipilot) is a simple orchestration layer based on Temporal workflows designed to run multiple Copilot instances concurrently on different projects",
+	Use:   "multipilot",
+	Short: "multipilot is a simple orchestration layer to run multiple GitHub Copilot tasks.",
+	Long:  "multipilot is a simple orchestration layer based on Temporal workflows designed to run multiple Copilot instances concurrently on different projects",
 	Run: func(cmd *cobra.Command, args []string) {
 		if showHelp {
 			_ = cmd.Help()
@@ -57,7 +57,14 @@ var rootCmd = &cobra.Command{
 				success += 1
 			}
 		}
-		fmt.Printf("Successfull tasks: %d\nFailed tasks: %d\nFailure reasons:\n- %s", success, failed, strings.Join(reasonsFailed, "\n- ")+"\n")
+		var failureReasons string
+		switch len(reasonsFailed) {
+		case 0:
+			failureReasons = "\n"
+		default:
+			failureReasons = "Failure reasons:\n- " + strings.Join(reasonsFailed, "\n- ") + "\n"
+		}
+		fmt.Printf("Successfull tasks: %d\nFailed tasks: %d\n%s", success, failed, failureReasons)
 	},
 }
 

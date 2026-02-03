@@ -2,6 +2,9 @@ package shared
 
 import (
 	"errors"
+	"fmt"
+	"os"
+	"strings"
 
 	copilot "github.com/github/copilot-sdk/go"
 )
@@ -18,7 +21,7 @@ type CopilotInput struct {
 	GitHubToken      string                                   `json:"token"`
 	AiModel          string                                   `json:"ai_model"`
 	SystemPrompt     string                                   `json:"system_prompt"`
-	AllowedTools     []string                                 `json:"allowed_tools"`
+	ExcludeTools     []string                                 `json:"exclude_tools"`
 	Skills           []string                                 `json:"skills"`
 	LocalMcpServers  map[string]copilot.MCPLocalServerConfig  `json:"local_mcp_servers"`
 	RemoteMcpServers map[string]copilot.MCPRemoteServerConfig `json:"remote_mcp_servers"`
@@ -52,6 +55,21 @@ func (c CopilotInput) GetLogFile() (string, error) {
 		return "", errors.New("log_file cannot be empty")
 	}
 	return c.LogFile, nil
+}
+
+func (c CopilotInput) GetToken() (string, error) {
+	if c.GitHubToken != "" {
+		if c.GitHubToken == "$GH_TOKEN" || c.GitHubToken == "$GITHUB_TOKEN" {
+			envVar := strings.TrimPrefix(c.GitHubToken, "$")
+			val, ok := os.LookupEnv(envVar)
+			if !ok {
+				return "", fmt.Errorf("No value associated to environment variable %s", envVar)
+			}
+			return val, nil
+		}
+		return c.GitHubToken, nil
+	}
+	return c.GitHubToken, nil
 }
 
 func (t *CopilotTasks) Validate() error {

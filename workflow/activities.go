@@ -19,8 +19,12 @@ func RunCopilot(ctx context.Context, task shared.CopilotInput) error {
 		return err
 	}
 	options := &copilot.ClientOptions{Cwd: task.Cwd, LogLevel: task.LogLevel, Env: task.Env}
-	if task.GitHubToken != "" {
-		options.GithubToken = task.GitHubToken
+	tok, err := task.GetToken()
+	if err != nil {
+		return err
+	}
+	if tok != "" {
+		options.GithubToken = tok
 	}
 	client := copilot.NewClient(options)
 	if err := client.Start(); err != nil {
@@ -64,7 +68,7 @@ func RunCopilot(ctx context.Context, task shared.CopilotInput) error {
 	session, err := client.CreateSession(&copilot.SessionConfig{
 		Model:            model,
 		WorkingDirectory: task.Cwd,
-		AvailableTools:   task.AllowedTools,
+		ExcludedTools:    task.ExcludeTools,
 		SystemMessage:    (*copilot.SystemMessageConfig)(systemPrompt),
 		MCPServers:       mcpServers,
 		SkillDirectories: task.Skills,
@@ -94,7 +98,7 @@ func RunCopilot(ctx context.Context, task shared.CopilotInput) error {
 
 	defer func() { _ = session.Destroy() }()
 
-	response, err := session.SendAndWait(copilot.MessageOptions{Prompt: task.Prompt}, time.Duration(timeout))
+	response, err := session.SendAndWait(copilot.MessageOptions{Prompt: task.Prompt}, time.Duration(timeout)*time.Second)
 	if err != nil {
 		log.Printf("An error occurred while sending prompt to session: %s", err.Error())
 	}
@@ -131,8 +135,10 @@ func dataToString(data copilot.Data) (string, error) {
 	}
 	ls := make([]string, 0, len(v))
 	for k := range v {
-		s := fmt.Sprintf("%s: %v", k, v[k])
-		ls = append(ls, s)
+		if v[k] != nil {
+			s := fmt.Sprintf("%s: %v", k, v[k])
+			ls = append(ls, s)
+		}
 	}
 	return strings.Join(ls, "; "), nil
 }

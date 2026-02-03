@@ -25,7 +25,7 @@ temporal server start-dev --db-filename multipilot.db
 Start the temporal worker that will orchestrate all the tasks:
 
 ```bash
-mp start-worker
+multipilot start-worker
 ```
 
 Create a configuration file with all the tasks you want Copilot to perform, following this blueprint:
@@ -44,14 +44,11 @@ Create a configuration file with all the tasks you want Copilot to perform, foll
       ],
       "prompt": "Analyze the codebase and suggest improvements for performance",
       "token": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-      "ai_model": "claude-sonnet-4-20250514",
+      "ai_model": "gpt-5.1",
       "system_prompt": "You are a helpful coding assistant specializing in Go and Python.",
-      "allowed_tools": [
-        "bash_tool",
-        "str_replace",
-        "create_file",
-        "view",
-        "web_search"
+      "exclude_tools": [
+        "shell(rm)",
+        "shell(git push)",
       ],
       "skills": [
         "code_review",
@@ -118,12 +115,10 @@ Create a configuration file with all the tasks you want Copilot to perform, foll
       "token": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
       "ai_model": "claude-sonnet-4-20250514",
       "system_prompt": "You are a helpful coding assistant specializing in Typescript and React.",
-      "allowed_tools": [
-        "bash_tool",
-        "str_replace",
-        "create_file",
-        "view",
-        "web_search"
+      "exclude_tools": [
+        "write",
+        "shell(npm remove)",
+        "shell(npm install)",
       ],
       "skills": [],
       "local_mcp_servers": {
@@ -153,14 +148,14 @@ As you can see, you have a list of tasks under `tasks`, each having the followin
 - **log_level**: Logging verbosity (e.g., "debug", "info", "warn", "error")
 - **timeout_sec**: Maximum duration in seconds before the session times out
 - **env**: Array of environment variables in `KEY=VALUE` format, available to tools and MCP servers
-- **token**: GitHub personal access token for authentication
+- **token**: GitHub personal access token for authentication. It is advised to use `$GITHUB_TOKEN` or `$GH_TOKEN` to reference environment variables, without pasting the actual token in the configuration file.
 - **ai_model**: The AI model to use
 - **system_prompt**: Custom instructions that define the AI's behavior and role
 - **prompt**: The user's actual task or question for the AI to process
-- **allowed_tools**: Whitelist of tools Copilot can use (e.g., file operations, web search)
+- **exclude_tools**: Black list of tools Copilot cannot use (e.g., `shell(rm)`, `write`, `shell(git push)`)
 - **skills**: Directories containing files detailing higher-level capabilities or specialized knowledge areas the AI should employ
 - **local_mcp_servers**: Stdio/local processes that run on the same machine:
-- **tools**: List of tool names this server provides
+  + **tools**: List of tool names this server provides
   + **type**: "stdio" or "local" - how to communicate with the server
   + **command**: Executable to run (e.g., "npx", "/usr/local/bin/tool")
   + **args**: Command-line arguments
@@ -174,10 +169,15 @@ As you can see, you have a list of tasks under `tasks`, each having the followin
   + **headers**: HTTP headers for authentication and content type
   + **timeout**: Maximum request duration in seconds
 
+Take a look at the [example configuration](./multipilot.config.json) to see a real-world example on how you can use multipilot to run two tasks concurrently on two different projects (`multipilot` and [`workflows-acp`](https://github.com/AstraBert/workflows-acp)) to identify the underlying workflow engines that they are using.
+
 Once the configuration is defined, run the tasks:
 
 ```bash
-mp --config multipilot.config.json
+# use with a custom configuration path
+multipilot --config config.json
+# use with the default config, `multipilot.config.json`
+multipilot
 ```
 
 Each task will be run concurrently and, at the end, you will have a report of successfull and failed tasks.

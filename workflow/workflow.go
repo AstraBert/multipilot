@@ -10,7 +10,7 @@ import (
 
 const CopilotTaskQueue string = "copilot-task-queue"
 
-func CopilotWorkflow(ctx workflow.Context, input shared.CopilotInput) (bool, error) {
+func CopilotWorkflow(ctx workflow.Context, input shared.CopilotInput) error {
 
 	// RetryPolicy specifies how to automatically handle retries if an Activity fails.
 	retrypolicy := &temporal.RetryPolicy{
@@ -36,10 +36,10 @@ func CopilotWorkflow(ctx workflow.Context, input shared.CopilotInput) (bool, err
 
 	activityError := workflow.ExecuteActivity(ctx, RunCopilot, input).Get(ctx, &output)
 	if activityError != nil {
-		return false, activityError
+		return activityError
 	}
 	if output != nil {
-		return false, output
+		return output
 	}
-	return true, nil
+	return nil
 }
