@@ -3,11 +3,14 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
 
+	"github.com/AstraBert/multipilot/components"
 	"github.com/AstraBert/multipilot/worker"
+	"github.com/a-h/templ"
 	"github.com/spf13/cobra"
 )
 
@@ -77,6 +80,36 @@ var workerCmd = &cobra.Command{
 	},
 }
 
+var port int
+var host string
+var fileToRender string
+
+var renderCmd = &cobra.Command{
+	Use:   "render",
+	Short: "Render logs from a MultiPilot session",
+	Long:  "Render the logs from a MultiPilot session within a HTML file served locally on your browser.",
+	Run: func(cmd *cobra.Command, args []string) {
+		if fileToRender == "" {
+			log.Println("required option `--input/-i` is missing")
+			return
+		}
+		events, err := LoadEvents(fileToRender)
+		if err != nil {
+			log.Printf("An error occurred while loading the events from the log file: %s\n", err.Error())
+			return
+		}
+		addr := fmt.Sprintf("%s:%d", host, port)
+		server := http.NewServeMux()
+		component := components.Home(events)
+		server.Handle("GET /", templ.Handler(component))
+		log.Printf("starting server on :%s\n", addr)
+
+		if err := http.ListenAndServe(addr, server); err != nil {
+			log.Fatal(err)
+		}
+	},
+}
+
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Oops. An error while executing scpr '%s'\n", err)
@@ -88,5 +121,11 @@ func init() {
 	rootCmd.Flags().StringVarP(&configFile, "config", "c", DefaultConfigFile, "Path to the JSON file where the config for multipilot is stored. Defaults to: multipilot.config.json")
 	rootCmd.Flags().BoolVarP(&showHelp, "help", "h", false, "Show the help message and exit.")
 
+	renderCmd.Flags().StringVarP(&fileToRender, "input", "i", "", "File with the JSON log records to render")
+	renderCmd.Flags().IntVarP(&port, "port", "p", 8000, "Port where to serve the rendered logs")
+	renderCmd.Flags().StringVarP(&host, "bind", "b", "0.0.0.0", "Host where to bind the port for logs rendering")
+	renderCmd.MarkFlagRequired("input")
+
 	rootCmd.AddCommand(workerCmd)
+	rootCmd.AddCommand(renderCmd)
 }

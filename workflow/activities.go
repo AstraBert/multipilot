@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/AstraBert/multipilot/shared"
@@ -78,8 +77,15 @@ func RunCopilot(ctx context.Context, task shared.CopilotInput) error {
 		return fmt.Errorf("An error occurred while creating a new session: %s", err.Error())
 	}
 
+	seenIds := make(map[string]int8)
+
 	session.On(func(event copilot.SessionEvent) {
-		toWrite, err := eventToLog(event)
+		_, ok := seenIds[event.ID]
+		if ok {
+			return
+		}
+		seenIds[event.ID] = 0
+		toWrite, err := serializeEvent(event)
 		if err != nil {
 			log.Printf("An error occurred while converting session event to log: %s\n", err.Error())
 			return
@@ -104,7 +110,7 @@ func RunCopilot(ctx context.Context, task shared.CopilotInput) error {
 	}
 
 	if response != nil {
-		toWrite, err := eventToLog(*response)
+		toWrite, err := serializeEvent(*response)
 		if err != nil {
 			log.Printf("An error occurred while converting session event to log: %s\n", err.Error())
 			return err
@@ -123,74 +129,97 @@ func RunCopilot(ctx context.Context, task shared.CopilotInput) error {
 	return nil
 }
 
-func dataToString(data copilot.Data) (string, error) {
-	content, err := json.Marshal(data)
+func serializeEvent(event copilot.SessionEvent) (string, error) {
+	transformed := shared.CopilotEvent{ID: event.ID, Timestamp: event.Timestamp, Type: string(event.Type), Data: make(map[string]any)}
+	content, err := json.Marshal(event.Data)
 	if err != nil {
 		return "", err
 	}
-	var v map[string]any
-	err = json.Unmarshal(content, &v)
+	var m map[string]any
+	err = json.Unmarshal(content, &m)
 	if err != nil {
 		return "", err
 	}
-	ls := make([]string, 0, len(v))
-	for k := range v {
-		if v[k] != nil {
-			s := fmt.Sprintf("%s: %v", k, v[k])
-			ls = append(ls, s)
+	for k := range m {
+		if m[k] != nil {
+			transformed.Data[k] = m[k]
 		}
 	}
-	return strings.Join(ls, "; "), nil
-}
-
-func eventToLog(event copilot.SessionEvent) (string, error) {
-	now := time.Now().Format(time.RFC1123)
-	data, err := dataToString(event.Data)
+	serialized, err := json.Marshal(transformed)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
-	switch event.Type {
-	// Assistant events
-	case copilot.AssistantIntent:
-		return fmt.Sprintf("%s - Assistant Intent: %s", now, data), nil
-	case copilot.AssistantMessage:
-		return fmt.Sprintf("%s - Assistant Message: %s", now, data), nil
-	case copilot.AssistantMessageDelta:
-		return fmt.Sprintf("%s - Assistant Message Delta: %s", now, data), nil
-	case copilot.AssistantReasoning:
-		return fmt.Sprintf("%s - Assistant Reasoning: %s", now, data), nil
-	case copilot.AssistantReasoningDelta:
-		return fmt.Sprintf("%s - Assistant Reasoning Delta: %s", now, data), nil
-	case copilot.AssistantTurnStart:
-		return fmt.Sprintf("%s - Assistant Turn Started", now), nil
-	case copilot.AssistantTurnEnd:
-		return fmt.Sprintf("%s - Assistant Turn Ended", now), nil
-	case copilot.AssistantUsage:
-		return fmt.Sprintf("%s - Assistant Usage: %s", now, data), nil
-
-	// Tool execution events
-	case copilot.ToolExecutionStart:
-		return fmt.Sprintf("%s - Tool Execution Started: %s", now, data), nil
-	case copilot.ToolExecutionProgress:
-		return fmt.Sprintf("%s - Tool Execution Progress: %s", now, data), nil
-	case copilot.ToolExecutionPartialResult:
-		return fmt.Sprintf("%s - Tool Execution Partial Result: %s", now, data), nil
-	case copilot.ToolExecutionComplete:
-		return fmt.Sprintf("%s - Tool Execution Complete: %s", now, data), nil
-	case copilot.ToolUserRequested:
-		return fmt.Sprintf("%s - Tool User Requested: %s", now, data), nil
-
-	// User events
-	case copilot.UserMessage:
-		return fmt.Sprintf("%s - User Message: %s", now, data), nil
-
-	// Error and abort events
-	case copilot.SessionError:
-		return fmt.Sprintf("%s - Session Error: %s", now, data), nil
-	case copilot.Abort:
-		return fmt.Sprintf("%s - Aborted: %s", now, data), nil
-
-	default:
-		return fmt.Sprintf("Event [%s]: %s", event.Type, data), nil
-	}
+	return string(serialized), nil
 }
+
+// func dataToString(data copilot.Data) (string, error) {
+// 	content, err := json.Marshal(data)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	var v map[string]any
+// 	err = json.Unmarshal(content, &v)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	ls := make([]string, 0, len(v))
+// 	for k := range v {
+// 		if v[k] != nil {
+// 			s := fmt.Sprintf("%s: %v", k, v[k])
+// 			ls = append(ls, s)
+// 		}
+// 	}
+// 	return strings.Join(ls, "; "), nil
+// }
+
+// func eventToLog(event copilot.SessionEvent) (string, error) {
+// 	now := time.Now().Format(time.RFC1123)
+// 	data, err := dataToString(event.Data)
+// 	if err != nil {
+// 		return "", nil
+// 	}
+// 	switch event.Type {
+// 	// Assistant events
+// 	case copilot.AssistantIntent:
+// 		return fmt.Sprintf("%s - Assistant Intent: %s", now, data), nil
+// 	case copilot.AssistantMessage:
+// 		return fmt.Sprintf("%s - Assistant Message: %s", now, data), nil
+// 	case copilot.AssistantMessageDelta:
+// 		return fmt.Sprintf("%s - Assistant Message Delta: %s", now, data), nil
+// 	case copilot.AssistantReasoning:
+// 		return fmt.Sprintf("%s - Assistant Reasoning: %s", now, data), nil
+// 	case copilot.AssistantReasoningDelta:
+// 		return fmt.Sprintf("%s - Assistant Reasoning Delta: %s", now, data), nil
+// 	case copilot.AssistantTurnStart:
+// 		return fmt.Sprintf("%s - Assistant Turn Started", now), nil
+// 	case copilot.AssistantTurnEnd:
+// 		return fmt.Sprintf("%s - Assistant Turn Ended", now), nil
+// 	case copilot.AssistantUsage:
+// 		return fmt.Sprintf("%s - Assistant Usage: %s", now, data), nil
+
+// 	// Tool execution events
+// 	case copilot.ToolExecutionStart:
+// 		return fmt.Sprintf("%s - Tool Execution Started: %s", now, data), nil
+// 	case copilot.ToolExecutionProgress:
+// 		return fmt.Sprintf("%s - Tool Execution Progress: %s", now, data), nil
+// 	case copilot.ToolExecutionPartialResult:
+// 		return fmt.Sprintf("%s - Tool Execution Partial Result: %s", now, data), nil
+// 	case copilot.ToolExecutionComplete:
+// 		return fmt.Sprintf("%s - Tool Execution Complete: %s", now, data), nil
+// 	case copilot.ToolUserRequested:
+// 		return fmt.Sprintf("%s - Tool User Requested: %s", now, data), nil
+
+// 	// User events
+// 	case copilot.UserMessage:
+// 		return fmt.Sprintf("%s - User Message: %s", now, data), nil
+
+// 	// Error and abort events
+// 	case copilot.SessionError:
+// 		return fmt.Sprintf("%s - Session Error: %s", now, data), nil
+// 	case copilot.Abort:
+// 		return fmt.Sprintf("%s - Aborted: %s", now, data), nil
+
+// 	default:
+// 		return fmt.Sprintf("Event [%s]: %s", event.Type, data), nil
+// 	}
+// }

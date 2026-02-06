@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	copilot "github.com/github/copilot-sdk/go"
 )
@@ -30,6 +31,13 @@ type CopilotInput struct {
 
 type CopilotTasks struct {
 	Tasks []CopilotInput `json:"tasks"`
+}
+
+type CopilotEvent struct {
+	Timestamp time.Time      `json:"timestamp"`
+	ID        string         `json:"id"`
+	Data      map[string]any `json:"data"`
+	Type      string         `json:"type"`
 }
 
 func (c CopilotInput) GetMcpServers() map[string]any {

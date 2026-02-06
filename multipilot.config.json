@@ -1,7 +1,7 @@
 {
   "tasks": [
     {
-      "log_file": "copilot-session-multipilot.log",
+      "log_file": "copilot-session-multipilot.jsonl",
       "cwd": "/Users/user/code-projects/multipilot",
       "log_level": "info",
       "env": [],
@@ -16,7 +16,7 @@
       "timeout_sec": 300
     },
     {
-      "log_file": "copilot-session-workflowsacp.log",
+      "log_file": "copilot-session-workflowsacp.jsonl",
       "cwd": "/Users/user/code-projects/workflows-acp",
       "log_level": "info",
       "env": [],
