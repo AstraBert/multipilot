@@ -143,7 +143,7 @@ Create a configuration file with all the tasks you want Copilot to perform, foll
 
 As you can see, you have a list of tasks under `tasks`, each having the following structure:
 
-- **log_file**: Path where session logs will be written
+- **log_file**: Path where session logs will be written (it is advised to use a `.jsonl` file since the logs are produced as JSON lines)
 - **cwd**: Current working directory for the copilot session
 - **log_level**: Logging verbosity (e.g., "debug", "info", "warn", "error")
 - **timeout_sec**: Maximum duration in seconds before the session times out
@@ -181,3 +181,9 @@ multipilot
 ```
 
 Each task will be run concurrently and, at the end, you will have a report of successfull and failed tasks.
+
+You will be able to render the events produced by the session by running:
+
+```bash
+multipilot render --input log-file.jsonl
+```

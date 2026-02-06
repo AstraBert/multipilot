@@ -1,0 +1,97 @@
+package components
+
+import "strings"
+import "fmt"
+
+import "sort"
+import "github.com/AstraBert/multipilot/shared"
+
+var eventTypeColors = map[string]string{
+	// Assistant events - blue shades
+	"assistant.intent":          "bg-blue-100 border-blue-300",
+	"assistant.message":         "bg-blue-200 border-blue-400",
+	"assistant.message_delta":   "bg-blue-50 border-blue-200",
+	"assistant.reasoning":       "bg-indigo-200 border-indigo-400",
+	"assistant.reasoning_delta": "bg-indigo-50 border-indigo-200",
+	"assistant.turn_start":      "bg-blue-300 border-blue-500",
+	"assistant.turn_end":        "bg-blue-300 border-blue-500",
+	"assistant.usage":           "bg-sky-100 border-sky-300",
+
+	// Tool execution events - purple/violet shades
+	"tool.execution_start":          "bg-purple-200 border-purple-400",
+	"tool.execution_progress":       "bg-purple-100 border-purple-300",
+	"tool.execution_partial_result": "bg-violet-100 border-violet-300",
+	"tool.execution_complete":       "bg-purple-300 border-purple-500",
+	"tool.user_requested":           "bg-fuchsia-100 border-fuchsia-300",
+
+	// User events - green shades
+	"user.message": "bg-green-200 border-green-400",
+
+	// Error and abort events - red/orange shades
+	"session.error": "bg-red-200 border-red-400",
+	"abort":         "bg-orange-200 border-orange-400",
+}
+
+func getEventColor(eventType string) string {
+	if color, exists := eventTypeColors[eventType]; exists {
+		return color
+	}
+	return "bg-gray-100 border-gray-300" // default color
+}
+
+func eventTypeToTitle(event shared.CopilotEvent) string {
+	parts := strings.SplitN(event.Type, ".", 2)
+	if len(parts) == 1 {
+		return strings.ToTitle(event.Type)
+	}
+	title := strings.ToTitle(parts[0])
+	details := strings.ToTitle(strings.ReplaceAll(parts[1], "_", " "))
+	return fmt.Sprintf("%s - %s", title, details)
+}
+
+func eventDataToList(event shared.CopilotEvent) []string {
+	data := make([]string, 0, len(event.Data))
+	for k := range event.Data {
+		s := fmt.Sprintf("%s: %v", k, event.Data[k])
+		data = append(data, s)
+	}
+	return data
+}
+
+func sortEventsByTimestamp(events []shared.CopilotEvent) []shared.CopilotEvent {
+	sorted := make([]shared.CopilotEvent, len(events))
+	copy(sorted, events)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Timestamp.Before(sorted[j].Timestamp)
+	})
+	return sorted
+}
+
+templ EventComponent(events []shared.CopilotEvent) {
+	<div class="space-y-4 p-4">
+		for _, event := range sortEventsByTimestamp(events) {
+			<div class={ "card border-2 shadow-md transition-all hover:shadow-lg", getEventColor(event.Type) }>
+				<div class="card-body p-4">
+					<div class="flex justify-between items-start mb-2">
+						<h3 class="card-title text-lg font-bold">{ eventTypeToTitle(event) }</h3>
+						<div class="badge badge-outline">
+							{ event.Timestamp.Format("15:04:05") }
+						</div>
+					</div>
+					<div class="text-xs text-gray-600 mb-2">
+						<span class="font-mono">{ event.ID }</span>
+					</div>
+					if len(event.Data) > 0 {
+						<div class="bg-white bg-opacity-50 rounded-lg p-3 mt-2">
+							<ul class="space-y-1 text-sm">
+								for _, item := range eventDataToList(event) {
+									<li class="font-mono text-xs break-all">{ item }</li>
+								}
+							</ul>
+						</div>
+					}
+				</div>
+			</div>
+		}
+	</div>
+}

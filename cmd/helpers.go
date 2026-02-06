@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/AstraBert/multipilot/shared"
 	"github.com/AstraBert/multipilot/workflow"
@@ -19,6 +20,10 @@ func ReadConfigToTasks(configFile string) (*shared.CopilotTasks, error) {
 	}
 	var tasks shared.CopilotTasks
 	err = json.Unmarshal(content, &tasks)
+	if err != nil {
+		return nil, err
+	}
+	err = tasks.Validate()
 	if err != nil {
 		return nil, err
 	}
@@ -66,4 +71,26 @@ func RunCopilotWorkflow(input shared.CopilotInput) error {
 		return result
 	}
 	return nil
+}
+
+func LoadEvents(logFile string) ([]shared.CopilotEvent, error) {
+	content, err := os.ReadFile(logFile)
+	if err != nil {
+		return nil, err
+	}
+	contentStr := string(content)
+	lines := strings.Split(contentStr, "\n")
+	events := make([]shared.CopilotEvent, 0, len(lines))
+	for _, line := range lines {
+		line = strings.TrimSuffix(line, "\n")
+		if line != "" {
+			var event shared.CopilotEvent
+			err := json.Unmarshal([]byte(line), &event)
+			if err != nil {
+				return nil, err
+			}
+			events = append(events, event)
+		}
+	}
+	return events, nil
 }
