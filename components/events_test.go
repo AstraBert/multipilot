@@ -3,6 +3,7 @@ package components
 import (
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/AstraBert/multipilot/shared"
 )
@@ -98,5 +99,18 @@ func TestEventDataToList(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestSortEventsByTimestamp(t *testing.T) {
+	events := []shared.CopilotEvent{
+		{Timestamp: time.Date(2026, time.February, 7, 12, 0, 0, 0, time.UTC)},
+		{Timestamp: time.Date(2026, time.February, 7, 11, 59, 0, 0, time.UTC)},
+		{Timestamp: time.Date(2026, time.February, 7, 12, 1, 0, 0, time.UTC)},
+		{Timestamp: time.Date(2026, time.February, 7, 11, 58, 0, 0, time.UTC)},
+	}
+	sortedEvents := sortEventsByTimestamp(events)
+	if !sortedEvents[0].Timestamp.Equal(events[3].Timestamp) || !sortedEvents[1].Timestamp.Equal(events[1].Timestamp) || !sortedEvents[2].Timestamp.Equal(events[0].Timestamp) || !sortedEvents[3].Timestamp.Equal(events[2].Timestamp) {
+		t.Fatalf("Unsorted slice: %v", sortedEvents)
 	}
 }
