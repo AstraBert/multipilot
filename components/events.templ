@@ -5,6 +5,8 @@ import "fmt"
 
 import "sort"
 import "github.com/AstraBert/multipilot/shared"
+import "golang.org/x/text/cases"
+import "golang.org/x/text/language"
 
 var eventTypeColors = map[string]string{
 	// Assistant events - blue shades
@@ -42,10 +44,10 @@ func getEventColor(eventType string) string {
 func eventTypeToTitle(event shared.CopilotEvent) string {
 	parts := strings.SplitN(event.Type, ".", 2)
 	if len(parts) == 1 {
-		return strings.ToTitle(event.Type)
+		return cases.Title(language.English).String(event.Type)
 	}
-	title := strings.ToTitle(parts[0])
-	details := strings.ToTitle(strings.ReplaceAll(parts[1], "_", " "))
+	title := cases.Title(language.English).String(parts[0])
+	details := cases.Title(language.English).String(strings.ReplaceAll(parts[1], "_", " "))
 	return fmt.Sprintf("%s - %s", title, details)
 }
 
