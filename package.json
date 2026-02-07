@@ -1,6 +1,6 @@
 {
   "name": "@cle-does-things/multipilot",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Orchestration layer to run multiple Copilot tasks concurrently.",
   "main": "index.js",
   "scripts": {
