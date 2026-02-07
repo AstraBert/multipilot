@@ -124,7 +124,7 @@ func init() {
 	renderCmd.Flags().StringVarP(&fileToRender, "input", "i", "", "File with the JSON log records to render")
 	renderCmd.Flags().IntVarP(&port, "port", "p", 8000, "Port where to serve the rendered logs")
 	renderCmd.Flags().StringVarP(&host, "bind", "b", "0.0.0.0", "Host where to bind the port for logs rendering")
-	renderCmd.MarkFlagRequired("input")
+	_ = renderCmd.MarkFlagRequired("input")
 
 	rootCmd.AddCommand(workerCmd)
 	rootCmd.AddCommand(renderCmd)

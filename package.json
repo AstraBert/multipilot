@@ -1,0 +1,34 @@
+{
+  "name": "@cle-does-things/multipilot",
+  "version": "0.1.0",
+  "description": "Orchestration layer to run multiple Copilot tasks concurrently.",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "golang-npm install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AstraBert/multipilot.git"
+  },
+  "keywords": [
+    "copilot",
+    "ai-agent",
+    "temporal-workflows",
+    "coding"
+  ],
+  "author": "Clelia Astra Bertelli",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AstraBert/multipilot/issues"
+  },
+  "homepage": "https://github.com/AstraBert/multipilot#readme",
+  "dependencies": {
+    "golang-npm": "^0.0.6"
+  },
+  "goBinary": {
+    "name": "multipilot",
+    "path": "./bin",
+    "url": "https://github.com/AstraBert/multipilot/releases/download/v{{version}}/multipilot_{{version}}_{{platform}}_{{arch}}.tar.gz"
+  }
+}
