@@ -71,7 +71,7 @@ func (c CopilotInput) GetToken() (string, error) {
 			envVar := strings.TrimPrefix(c.GitHubToken, "$")
 			val, ok := os.LookupEnv(envVar)
 			if !ok {
-				return "", fmt.Errorf("No value associated to environment variable %s", envVar)
+				return "", fmt.Errorf("no value associated to environment variable %s", envVar)
 			}
 			return val, nil
 		}

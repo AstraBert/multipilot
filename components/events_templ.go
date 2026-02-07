@@ -13,6 +13,8 @@ import "fmt"
 
 import "sort"
 import "github.com/AstraBert/multipilot/shared"
+import "golang.org/x/text/cases"
+import "golang.org/x/text/language"
 
 var eventTypeColors = map[string]string{
 	// Assistant events - blue shades
@@ -50,10 +52,10 @@ func getEventColor(eventType string) string {
 func eventTypeToTitle(event shared.CopilotEvent) string {
 	parts := strings.SplitN(event.Type, ".", 2)
 	if len(parts) == 1 {
-		return strings.ToTitle(event.Type)
+		return cases.Title(language.English).String(event.Type)
 	}
-	title := strings.ToTitle(parts[0])
-	details := strings.ToTitle(strings.ReplaceAll(parts[1], "_", " "))
+	title := cases.Title(language.English).String(parts[0])
+	details := cases.Title(language.English).String(strings.ReplaceAll(parts[1], "_", " "))
 	return fmt.Sprintf("%s - %s", title, details)
 }
 
@@ -126,7 +128,7 @@ func EventComponent(events []shared.CopilotEvent) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(eventTypeToTitle(event))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/events.templ`, Line: 76, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/events.templ`, Line: 78, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -139,7 +141,7 @@ func EventComponent(events []shared.CopilotEvent) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(event.Timestamp.Format("15:04:05"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/events.templ`, Line: 78, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/events.templ`, Line: 80, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -152,7 +154,7 @@ func EventComponent(events []shared.CopilotEvent) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(event.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/events.templ`, Line: 82, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/events.templ`, Line: 84, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -175,7 +177,7 @@ func EventComponent(events []shared.CopilotEvent) templ.Component {
 					var templ_7745c5c3_Var7 string
 					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(item)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/events.templ`, Line: 88, Col: 55}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/events.templ`, Line: 90, Col: 55}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 					if templ_7745c5c3_Err != nil {

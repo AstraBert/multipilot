@@ -10,6 +10,14 @@ A simple orchestration layer based with Temporal Workflows to run multiple Copil
 
 ## Installation
 
+With npm (recommended):
+
+```bash
+npm install @cle-does-things/multipilot@latest
+```
+
+With Go (1.24+ required):
+
 ```bash
 go install github.com/AstraBert/multipilot
 ```
@@ -43,8 +51,8 @@ Create a configuration file with all the tasks you want Copilot to perform, foll
         "API_KEY=secret123"
       ],
       "prompt": "Analyze the codebase and suggest improvements for performance",
-      "token": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-      "ai_model": "gpt-5.1",
+      "token": "$GH_TOKEN",
+      "ai_model": "claude-haiku-4-5",
       "system_prompt": "You are a helpful coding assistant specializing in Go and Python.",
       "exclude_tools": [
         "shell(rm)",
@@ -112,8 +120,8 @@ Create a configuration file with all the tasks you want Copilot to perform, foll
         "API_KEY=secret123"
       ],
       "prompt": "Analyze the codebase and suggest improvements for performance",
-      "token": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-      "ai_model": "claude-sonnet-4-20250514",
+      "token": "$GH_TOKEN",
+      "ai_model": "gpt-4.1",
       "system_prompt": "You are a helpful coding assistant specializing in Typescript and React.",
       "exclude_tools": [
         "write",
@@ -187,3 +195,11 @@ You will be able to render the events produced by the session by running:
 ```bash
 multipilot render --input log-file.jsonl
 ```
+
+## Contributing
+
+Contributions are welcome! Please read the [Contributing Guide](./CONTRIBUTING.md) to get started.
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE)
